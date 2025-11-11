@@ -1,0 +1,21 @@
+@Library('jenkinslib') _  // your shared library configured as 'jenkinslib'
+
+import com.example.utils.StringUtil
+
+pipeline {
+    agent any
+    stages {
+        stage('Demo StringUtil') {
+            steps {
+                script {
+                    // Instantiate the class, pass 'this' (script) for echo calls
+                    def stringUtil = new StringUtil(this)
+
+                    // Call methods
+                    stringUtil.info("Hello from Jenkins shared library!")
+                    stringUtil.warning("This is a warning message.")
+                }
+            }
+        }
+    }
+}

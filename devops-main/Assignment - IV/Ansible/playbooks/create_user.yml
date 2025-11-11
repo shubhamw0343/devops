@@ -1,0 +1,35 @@
+# ---
+# - name: Create user with host vars
+#   hosts: all
+#   become: yes
+#     #vars:
+#     # username: "Vivek"
+#     #    comment: "Vivek Account"
+#   tasks:
+#     - name: user through host vars
+#       ansible.builtin.user:
+#         name: "{{ username }}"
+#         comment: "{{ comment }}"
+#         state: present
+
+#     - name: Show created user info
+#       ansible.builtin.debug:
+#         msg: "User {{ username }} created with comment: {{ comment }}"
+
+
+- name: Create user with host vars
+  hosts: all
+  become: yes
+    #vars:
+    # username: "Vivek"
+    #    comment: "Vivek Account"
+  tasks:
+    - name: user through group vars
+      ansible.builtin.user:
+        name: "{{ username }}"
+        comment: "{{ comment }}"
+        state: present
+
+    - name: Show created user info
+      ansible.builtin.debug:
+        msg: "User {{ username }} created with comment: {{ comment }}"

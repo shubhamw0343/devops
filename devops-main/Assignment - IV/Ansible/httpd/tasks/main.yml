@@ -1,0 +1,23 @@
+
+- name: Install httpd on RedHat
+  yum:
+    name: httpd
+    state: present
+    update_cache: yes
+    # become: yes
+
+- name: Ensure httpd is running and enabled
+  service:
+    name: httpd
+    state: started
+    enabled: yes
+    # become: yes
+
+- name: Deploy custom HTML page
+  template:
+    src: httpd_index.html.j2
+    dest: /var/www/html/index.html
+    mode: '0644'
+    # become: yes
+
+# tasks file for httpd

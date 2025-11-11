@@ -1,0 +1,6 @@
+- name: Setup httpd on Red Hat host
+  hosts: redhat
+  become: yes
+
+  roles:
+    - httpd

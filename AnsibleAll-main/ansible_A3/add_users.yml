@@ -1,0 +1,16 @@
+---
+- name: Create multiple users
+  hosts: all
+  become: yes
+  vars:
+    users:
+      - Boka
+      - Dhoka
+      - Khoka
+  tasks:
+    - name: Add users with home directories
+      ansible.builtin.user:
+        name: "{{ item }}"
+        state: present
+        create_home: yes
+      loop: "{{ users }}"

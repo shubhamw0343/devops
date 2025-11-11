@@ -1,0 +1,46 @@
+pipeline {
+    agent { label 'node' }
+
+    stages {
+        stage('Fetch Code') {
+            steps {
+                git branch: 'main', url: 'https://github.com/ajay-raut/spnodeserver.git'
+            }
+        }
+
+        stage('Build Docker image') {
+            steps {
+                sh 'docker build -t node-server-app .'
+            }
+        }
+
+        stage('Run Container') {
+            steps {
+                script {
+                    sh 'docker run --name nodeServer -p 5000:5000 -itd node-server-app'
+                    
+                    sleep 120
+                    
+                    sh 'docker ps'
+                    
+                    sh 'docker stop nodeServer'
+                    
+                    sh 'docker rm nodeServer'
+                }
+            }
+        }
+    }
+
+    post {
+        failure {
+            mail to: 'ajayraut2500@gmail.com',
+                 subject: "Jenkins Build Failed: ${currentBuild.fullDisplayName}",
+                 body: """\
+                    Build URL: ${env.BUILD_URL}
+                    Build Status: ${currentBuild.currentResult}
+                    Please check the Jenkins job for more details.
+                 """
+        }
+    }
+}
+

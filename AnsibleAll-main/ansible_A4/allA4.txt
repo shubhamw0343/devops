@@ -1,0 +1,301 @@
+#!/bin/bash
+
+# ===== SET A =====
+mkdir -p ansible_setA
+cd ansible_setA || exit
+
+# ansible.cfg for Set A
+cat > ansible.cfg <<EOF
+[defaults]
+inventory = inventory.ini
+host_key_checking = False
+EOF
+
+# inventory.ini for Set A
+cat > inventory.ini <<EOF
+# Host definitions with per-host variables
+web01 ansible_host=13.220.116.64 ansible_user=ubuntu
+web02 ansible_host=54.242.53.158 ansible_user=ubuntu
+web03 ansible_host=54.91.4.38 ansible_user=ubuntu
+
+# Group for Debian family (Ubuntu)
+[debian]
+web01
+web02
+web03
+
+# All servers
+[allservers:children]
+debian
+EOF
+
+# host_vars/web01.yml
+mkdir -p host_vars
+cat > host_vars/web01.yml <<EOF
+username: deepak
+comment: "User created on web01"
+EOF
+
+# group_vars/all.yml
+mkdir -p group_vars
+cat > group_vars/all.yml <<EOF
+username: globaluser
+comment: "Global user for all hosts"
+EOF
+
+# group_vars/debian.yml
+cat > group_vars/debian.yml <<EOF
+username: debuser
+comment: "User for Debian group"
+EOF
+
+# create_user.yml playbook for Set A
+cat > create_user.yml <<EOF
+- name: Create user on Debian nodes
+  hosts: debian
+  become: yes
+  vars:
+    username: "{{ username }}"
+    comment: "{{ comment }}"
+  tasks:
+    - name: Create a user with a comment
+      user:
+        name: "{{ username }}"
+        comment: "{{ comment }}"
+        state: present
+
+    - name: Debug user info
+      debug:
+        msg: "User {{ username }} created with comment '{{ comment }}'"
+EOF
+
+cd ..
+
+# ===== SET B =====
+mkdir -p ansible_setB/templates
+cd ansible_setB || exit
+
+# ansible.cfg for Set B
+cat > ansible.cfg <<EOF
+[defaults]
+inventory = inventory.ini
+host_key_checking = False
+EOF
+
+# inventory.ini for Set B
+cat > inventory.ini <<EOF
+debian_node ansible_host=10.0.0.10 ansible_user=ubuntu
+debian_node2 ansible_host=10.0.0.11 ansible_user=ubuntu
+
+[debian]
+debian_node
+debian_node2
+EOF
+
+# templates/index.html.j2 for Set B
+cat > templates/index.html.j2 <<EOF
+<!DOCTYPE html>
+<html>
+<head><title>Welcome</title></head>
+<body>
+<h1>Hostname: {{ ansible_hostname }}</h1>
+<p>IP Address: {{ ansible_default_ipv4.address }}</p>
+</body>
+</html>
+EOF
+
+# templates/nginx.conf.j2 for Set B
+cat > templates/nginx.conf.j2 <<EOF
+server {
+    listen 80;
+    server_name example.com;
+
+    root /var/www/html;
+    index index.html;
+
+    location / {
+        try_files \$uri \$uri/ =404;
+    }
+}
+EOF
+
+# install_nginx.yml for Set B
+cat > install_nginx.yml <<EOF
+- name: Install Nginx on all hosts
+  hosts: debian
+  become: yes
+  tasks:
+    - name: Install nginx
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+
+    - name: Start and enable nginx
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+EOF
+
+# copy_nginx_conf.yml for Set B
+cat > copy_nginx_conf.yml <<EOF
+- name: Copy nginx configuration file
+  hosts: debian
+  become: yes
+  tasks:
+    - name: Template nginx.conf to /etc/nginx/sites-available/example.com.conf
+      template:
+        src: nginx.conf.j2
+        dest: /etc/nginx/sites-available/example.com.conf
+
+    - name: Enable site by linking to sites-enabled
+      file:
+        src: /etc/nginx/sites-available/example.com.conf
+        dest: /etc/nginx/sites-enabled/example.com.conf
+        state: link
+
+    - name: Remove default site if exists
+      file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+
+    - name: Reload nginx to apply changes
+      service:
+        name: nginx
+        state: reloaded
+EOF
+
+# update_index_html.yml for Set B
+cat > update_index_html.yml <<EOF
+- name: Update nginx index.html with template
+  hosts: debian
+  become: yes
+  tasks:
+    - name: Template index.html
+      template:
+        src: index.html.j2
+        dest: /var/www/html/index.nginx-debian.html
+EOF
+
+cd ..
+
+# ===== SET C =====
+mkdir -p ansible_setC/roles/apache/tasks
+mkdir -p ansible_setC/roles/apache/templates
+mkdir -p ansible_setC/roles/httpd/tasks
+mkdir -p ansible_setC/roles/httpd/templates
+
+cd ansible_setC || exit
+
+# ansible.cfg for Set C
+cat > ansible.cfg <<EOF
+[defaults]
+inventory = inventory.ini
+host_key_checking = False
+EOF
+
+# inventory.ini for Set C
+cat > inventory.ini <<EOF
+[debian]
+debian_node ansible_host=DEBIAN_IP ansible_user=ubuntu
+
+[redhat]
+redhat_node ansible_host=REDHAT_IP ansible_user=ec2-user
+
+[all:vars]
+ansible_ssh_private_key_file=~/.ssh/YOUR_PRIVATE_KEY.pem
+EOF
+
+# roles/apache/tasks/main.yml
+cat > roles/apache/tasks/main.yml <<EOF
+- name: Install Apache (apache2)
+  apt:
+    name: apache2
+    state: present
+    update_cache: yes
+
+- name: Start and enable apache2
+  service:
+    name: apache2
+    state: started
+    enabled: yes
+
+- name: Create HTML page with hostname and IP
+  template:
+    src: index.html.j2
+    dest: /var/www/html/index.html
+EOF
+
+# roles/apache/templates/index.html.j2
+cat > roles/apache/templates/index.html.j2 <<EOF
+<!DOCTYPE html>
+<html>
+  <head><title>Apache Web Server</title></head>
+  <body>
+    <h1>Hostname: {{ ansible_hostname }}</h1>
+    <p>IP Address: {{ ansible_default_ipv4.address }}</p>
+  </body>
+</html>
+EOF
+
+# roles/httpd/tasks/main.yml
+cat > roles/httpd/tasks/main.yml <<EOF
+- name: Install httpd
+  yum:
+    name: httpd
+    state: present
+
+- name: Start and enable httpd
+  service:
+    name: httpd
+    state: started
+    enabled: yes
+
+- name: Create HTML page with hostname and IP
+  template:
+    src: index.html.j2
+    dest: /var/www/html/index.html
+EOF
+
+# roles/httpd/templates/index.html.j2
+cat > roles/httpd/templates/index.html.j2 <<EOF
+<!DOCTYPE html>
+<html>
+  <head><title>HTTPD Server</title></head>
+  <body>
+    <h1>Hostname: {{ ansible_hostname }}</h1>
+    <p>IP Address: {{ ansible_default_ipv4.address }}</p>
+  </body>
+</html>
+EOF
+
+# debian_apache.yml playbook
+cat > debian_apache.yml <<EOF
+- name: Setup Apache on Debian host
+  hosts: debian
+  become: yes
+
+  roles:
+    - apache
+EOF
+
+# redhat_httpd.yml playbook
+cat > redhat_httpd.yml <<EOF
+- name: Setup httpd on Red Hat host
+  hosts: redhat
+  become: yes
+
+  roles:
+    - httpd
+EOF
+
+cd ..
+
+echo "Setup complete. Directories created:"
+echo "- ansible_setA"
+echo "- ansible_setB"
+echo "- ansible_setC"
+echo ""
+echo "Use 'cd ansible_setX' and run 'ansible-playbook <playbook.yml>' to execute respective sets."
+

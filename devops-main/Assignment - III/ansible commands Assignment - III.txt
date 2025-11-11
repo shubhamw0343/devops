@@ -1,0 +1,54 @@
+Ansible Assignment - III Commands
+
+SET - A
+
+-->  ansible all -m ping
+
+I. Install apache2 on a Debian system using an Ansible ad-hoc command.
+-->  ansible debian -m ansible.builtin.apt -a "name=apache2 state=present update_cache=yes" --become
+
+II. Install httpd on RedHat system using an Ansible ad-hoc command.
+-->  ansible redhat -m ansible.builtin.yum -a "name=httpd state=present update_cache=yes" --become
+
+III. Demonstrate at least one use case of ansible.builtin.copy module using adhoc command.
+-->  ansible all -m ansible.builtin.copy -a "src=./index.html dest=/var/www/html/index.html" --become
+
+IV. Demonstrate at least one use case of ansible.builtin.file module using adhoc command.
+-->  ansible all -m ansible.builtin.file -a "path=/home/ansible state=directory" --become
+
+V. Demonstrate at least one use case of copy module using adhoc command.
+-->  ansible all -m ansible.builtin.copy -a "dest=/home/hello.txt content='Hello Dosto...😀'" --become
+
+VI. Demonstrate at least one use case of ansible.builtin.service module using adhoc command.
+-->  ansible debian -m ansible.builtin.service -a "name=apache2 state=started" --become
+-->  ansible redhat -m ansible.builtin.service -a "name=httpd state=started" --become
+
+VII. Demonstrate at least one use case of ansible.builtin.apt module using adhoc command.
+-->  ansible debian -m ansible.builtin.apt -a "name=git state=present update_cache=yes" --become
+
+VIII. Demonstrate at least one use case of ansible.builtin.yum module using adhoc command.
+-->  ansible redhat -m ansible.builtin.yum -a "name=vim state=present" --become
+
+IX. Demonstrate at least one use case of ansible.builtin.user module using adhoc command.
+-->  ansible all -m ansible.builtin.user -a "name=DevOps state=present create_home=yes" --become
+
+X. Demonstrate at least one use case of ansible.builtin.setup module using adhoc command.
+-->  ansible all -m ansible.builtin.setup
+
+
+SET - B 
+
+-->  ansible-playbook playbooks/java_playbook.yml
+-->  ansible-playbook playbooks/nginx_playbook.yml
+-->  ansible-playbook playbooks/multiple_users.yml
+
+NOTE :  Use Your Playbooks And Their Name
+
+SET - C 
+
+-->  ansible-playbook playbooks/deploy_website.yml 
+-->  ansible-playbook playbooks/time_service.yml 
+
+NOTE :  Use Your Playbooks And Their Name
+
+

@@ -1,0 +1,18 @@
+---
+- name: Replace default Nginx index page with custom template
+  hosts: ubuntu
+  become: yes
+
+  tasks:
+    - name: Replace index.nginx-debian.html with Jinja2 template
+      template:
+        src: /home/msc2/Vedant/Ansible/templates/index.html.j2
+        dest: /var/www/html/index.nginx-debian.html
+        mode: '0644'
+
+    - name: Ensure Nginx is running
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+

@@ -1,0 +1,18 @@
+# Host definitions with per-host variables
+web01 ansible_host=15.206.149.29 ansible_user=ubuntu
+web02 ansible_host=65.1.108.28 ansible_user=ubuntu
+db01  ansible_host=13.232.113.246 ansible_user=ec2-user ansible_python_interpreter=/usr/bin/python3
+
+# Group for Debian family (Ubuntu)
+[debian]
+web01
+web02
+
+# Group for Red Hat family (Amazon Linux)
+[redhat]
+db01
+
+# All servers
+[allservers:children]
+debian
+redhat

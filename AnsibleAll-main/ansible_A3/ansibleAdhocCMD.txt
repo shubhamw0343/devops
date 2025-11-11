@@ -1,0 +1,53 @@
+#!/bin/bash
+
+# -------------------------
+# Ansible Assignment Set A
+# -------------------------
+
+# Target hosts:
+# - 'debian' => Debian-based (e.g. Ubuntu)
+# - 'redhat' => RedHat-based (e.g. Amazon Linux / CentOS)
+
+# 1. Install apache2 on Debian system
+echo "Installing apache2 on Debian host..."
+ansible debian -m ansible.builtin.apt -a "name=apache2 state=present update_cache=true"
+
+# 2. Install httpd on RedHat system
+echo "Installing httpd on RedHat host..."
+ansible redhat -m ansible.builtin.yum -a "name=httpd state=present"
+
+# 3. Use ansible.builtin.copy module - Copy a file to /tmp
+echo "Copying 'hello.txt' to /tmp/hello.txt on all hosts..."
+ansible all -m ansible.builtin.copy -a "src=hello.txt dest=/tmp/hello.txt"
+
+# 4. Use ansible.builtin.file module - Create a directory
+echo "Creating directory /tmp/testdir on all hosts..."
+ansible all -m ansible.builtin.file -a "path=/tmp/testdir state=directory mode=0755"
+
+# 5. Another use of copy module - Copy file with permission change
+echo "Copying 'hello.txt' to /tmp/hello2.txt with 0644 permissions..."
+ansible all -m ansible.builtin.copy -a "src=hello.txt dest=/tmp/hello2.txt mode=0644"
+
+# 6. Use ansible.builtin.service module - Start web servers
+echo "Starting apache2 on Debian host..."
+ansible debian -m ansible.builtin.service -a "name=apache2 state=started"
+
+echo "Starting httpd on RedHat host..."
+ansible redhat -m ansible.builtin.service -a "name=httpd state=started"
+
+# 7. Use ansible.builtin.apt module - Install curl on Debian
+echo "Installing curl using apt on Debian host..."
+ansible debian -m ansible.builtin.apt -a "name=curl state=present update_cache=true"
+
+# 8. Use ansible.builtin.yum module - Install curl on RedHat
+echo "Installing curl using yum on RedHat host..."
+ansible redhat -m ansible.builtin.dnf -a "name=curl-minimal state=absent" --become
+ansible redhat -m ansible.builtin.dnf -a "name=curl state=present" --become
+
+# 9. Use ansible.builtin.user module - Create user 'deepak'
+echo "Creating user 'deepak' with home directory on all hosts..."
+ansible all -m ansible.builtin.user -a "name=deepak state=present create_home=yes"
+
+# 10. Use ansible.builtin.setup module - Gather system facts
+echo "Gathering system facts on all hosts..."
+ansible all -m ansible.builtin.setup

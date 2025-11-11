@@ -1,0 +1,16 @@
+for ubuntu
+
+
+python3 -m venv venv
+
+source venv/bin/activate
+
+pip install mlflow
+
+pip install notebook
+
+jupyter notebook
+
+mlflow ui
+
+

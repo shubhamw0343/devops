@@ -1,0 +1,10 @@
+- name: Deploy customized index.html
+  hosts: debian
+  become: yes
+
+  tasks:
+    - name: Copy index.html file
+      template:
+        src: templates/index.html.j2
+        dest: /var/www/html/index.nginx-debian.html
+        mode: '0644'

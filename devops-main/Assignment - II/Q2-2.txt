@@ -1,0 +1,41 @@
+def dockerHubCredentialsId = 'Docker'
+
+pipeline {
+    agent { label 'node' }
+
+    stages {
+        stage ('fetch code') {
+            steps {
+                git branch: 'main' , url: 'https://github.com/ajay-raut/spnodeserver.git'
+            }
+        }
+
+        stage ('build') {
+            steps {
+                script {
+
+                    withCredentials([usernamePassword(credentialsId: dockerHubCredentialsId, usernameVariable: 'DOCKERHUB_USERNAME', passwordVariable: 'DOCKERHUB_PASSWORD')]) {
+                        sh "docker build -t ${DOCKERHUB_USERNAME}/my-node-app ."
+                    }
+                }
+            }
+        }
+
+        stage ('push') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: dockerHubCredentialsId, usernameVariable: 'DOCKERHUB_USERNAME', passwordVariable: 'DOCKERHUB_PASSWORD')]) {
+                        sh "docker login -u ${DOCKERHUB_USERNAME} --password ${DOCKERHUB_PASSWORD}"
+
+                        sh "docker tag ${DOCKERHUB_USERNAME}/my-node-app:latest ${DOCKERHUB_USERNAME}/my-node-app:${env.BUILD_NUMBER}"
+                
+                        sh "docker push ${DOCKERHUB_USERNAME}/my-node-app:${env.BUILD_NUMBER}"
+
+                        sh "docker push ${DOCKERHUB_USERNAME}/my-node-app:latest"
+                    }
+                }
+            }
+        }
+    }
+}
+

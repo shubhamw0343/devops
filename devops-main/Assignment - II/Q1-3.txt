@@ -1,0 +1,24 @@
+pipeline {
+    agent { label 'node' }
+    stages {
+        stage('Run PostgreSQL Container Securely') {
+            steps {
+                script {
+                    withCredentials([string(credentialsId: 'postgres-password', variable: 'POSTGRES_PASSWORD')]) {
+                        sh "docker run --name postgres-Server1 -e POSTGRES_PASSWORD=${POSTGRES_PASSWORD} -d postgres"
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "PostgreSQL container '${env.POSTGRES_CONTAINER_NAME}' is running."
+        }
+        failure {
+            echo "Failed to start PostgreSQL container."
+        }
+    }
+}
+

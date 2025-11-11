@@ -1,0 +1,22 @@
+---
+- name: Add multiple users
+  hosts: all
+  become: yes
+
+  gather_facts: true
+
+  vars:
+    users_list:
+      - vedant
+      - vivek
+      - prajwal
+      - deepak
+      - jayesh
+      
+  tasks:
+    - name: Ensure users exist
+      ansible.builtin.user:
+        name: "{{ item }}"
+        state: present
+        create_home: yes
+      loop: "{{ users_list }}"

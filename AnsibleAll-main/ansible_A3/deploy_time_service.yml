@@ -1,0 +1,68 @@
+---
+- name: Deploy and Configure Time Service
+  hosts: all
+  become: yes
+
+  vars:
+    chrony_conf_src: "files/chrony.conf"   # You should provide this file in your ansible directory
+    ntp_conf_src: "files/ntp.conf"         # Provide custom ntp.conf if needed
+
+  tasks:
+
+    - name: Install chrony on RedHat family
+      ansible.builtin.yum:
+        name: chrony
+        state: present
+      when: ansible_os_family == "RedHat"
+
+    - name: Install ntp on Debian family
+      ansible.builtin.apt:
+        name: ntp
+        state: present
+        update_cache: yes
+      when: ansible_os_family == "Debian"
+
+    - name: Deploy chrony config on RedHat family
+      ansible.builtin.template:
+        src: "{{ chrony_conf_src }}"
+        dest: /etc/chrony.conf
+        owner: root
+        group: root
+        mode: '0644'
+      notify: restart chrony
+      when: ansible_os_family == "RedHat"
+
+    - name: Deploy ntp config on Debian family
+      ansible.builtin.template:
+        src: "{{ ntp_conf_src }}"
+        dest: /etc/ntp.conf
+        owner: root
+        group: root
+        mode: '0644'
+      notify: restart ntp
+      when: ansible_os_family == "Debian"
+
+    - name: Ensure chrony service is running and enabled (RedHat)
+      ansible.builtin.service:
+        name: chronyd
+        state: started
+        enabled: yes
+      when: ansible_os_family == "RedHat"
+
+    - name: Ensure ntp service is running and enabled (Debian)
+      ansible.builtin.service:
+        name: ntp
+        state: started
+        enabled: yes
+      when: ansible_os_family == "Debian"
+
+  handlers:
+    - name: restart chrony
+      ansible.builtin.service:
+        name: chronyd
+        state: restarted
+
+    - name: restart ntp
+      ansible.builtin.service:
+        name: ntp
+        state: restarted

@@ -1,0 +1,29 @@
+# - name: Create user on Debian nodes
+#   hosts: all
+#   become: yes
+#   tasks:
+#     - name: Create a user with a comment
+#       user:
+#         name: "{{ username }}"
+#         comment: "{{ comment }}"
+#         state: present
+
+#     - name: Debug created user and comment
+#       debug:
+#         msg: "User '{{ username }}' created with comment '{{ comment }}'"
+
+
+- name: Create user on Debian nodes
+  hosts: debian
+  become: yes
+
+  tasks:
+    - name: Create a user with a comment
+      user:
+        name: "{{ username }}"
+        comment: "{{ comment }}"
+        state: present
+
+    - name: Show the created user info
+      debug:
+        msg: "User '{{ username }}' created with comment '{{ comment }}'"

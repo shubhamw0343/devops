@@ -1,0 +1,126 @@
+#!/bin/bash
+
+# ===============================
+# Create project directory
+# ===============================
+mkdir -p ansible_project/files
+cd ansible_project
+
+# ===============================
+# Create Ansible Inventory
+# ===============================
+cat > inventory.ini <<EOF
+[debian]
+web01 ansible_host=15.206.149.29 ansible_user=ubuntu
+
+[redhat]
+db01 ansible_host=13.232.113.246 ansible_user=ec2-user ansible_python_interpreter=/usr/bin/python3
+
+[all:vars]
+ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+EOF
+
+# ===============================
+# Create Ansible Config
+# ===============================
+cat > ansible.cfg <<EOF
+[defaults]
+inventory = inventory.ini
+remote_user = ubuntu
+host_key_checking = False
+retry_files_enabled = False
+EOF
+
+# ===============================
+# Create chrony.conf (Debian/RedHat)
+# ===============================
+cat > files/chrony.conf <<EOF
+server time.google.com iburst
+driftfile /var/lib/chrony/drift
+makestep 1.0 3
+rtcsync
+logdir /var/log/chrony
+EOF
+
+# ===============================
+# Create ntp.conf (Optional)
+# ===============================
+cat > files/ntp.conf <<EOF
+server time.google.com iburst
+restrict default kod nomodify notrap nopeer noquery
+restrict 127.0.0.1
+driftfile /var/lib/ntp/ntp.drift
+EOF
+
+# ===============================
+# Create time_sync.yml playbook
+# ===============================
+cat > time_sync.yml <<'EOF'
+---
+- name: Configure Time Sync on All Managed Nodes
+  hosts: all
+  become: yes
+  vars:
+    chrony_conf_src: "files/chrony.conf"
+    ntp_conf_src: "files/ntp.conf"
+
+  tasks:
+    - name: Gather facts
+      ansible.builtin.setup:
+
+    - name: Install Chrony on Debian
+      ansible.builtin.apt:
+        name: chrony
+        state: present
+        update_cache: yes
+      when: ansible_os_family == "Debian"
+      notify: Restart Chrony
+
+    - name: Install Chrony on RedHat
+      ansible.builtin.yum:
+        name: chrony
+        state: present
+      when: ansible_os_family == "RedHat"
+      notify: Restart Chrony
+
+    - name: Copy Chrony config
+      ansible.builtin.copy:
+        src: "{{ chrony_conf_src }}"
+        dest: /etc/chrony.conf
+        owner: root
+        group: root
+        mode: '0644'
+      notify: Restart Chrony
+
+    - name: Ensure Chrony service is running
+      ansible.builtin.service:
+        name: chronyd
+        state: started
+        enabled: yes
+
+  handlers:
+    - name: Restart Chrony
+      ansible.builtin.service:
+        name: chronyd
+        state: restarted
+EOF
+
+# ===============================
+# Run the Playbook
+# ===============================
+echo -e "\n>> Running Ansible Playbook to configure Time Service...\n"
+ansible-playbook time_sync.yml
+
+# ===============================
+# Verify Time Sync
+# ===============================
+echo -e "\n>> Checking time status on all nodes (Chrony):\n"
+ansible all -m command -a "chronyc tracking"
+
+echo -e "\n>> Checking time sources on all nodes (Chrony):\n"
+ansible all -m command -a "chronyc sources"
+
+echo -e "\n>> Current date/time on all nodes:\n"
+ansible all -a "date"
+
+echo -e "\n✅ Setup complete."

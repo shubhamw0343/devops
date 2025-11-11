@@ -1,0 +1,28 @@
+---
+- name: Install Java
+  hosts: all
+  become: yes
+
+  gather_facts: true
+
+  tasks:
+    - name: Update apt cache (Debian)
+      ansible.builtin.apt:
+        update_cache: yes
+      when: ansible_os_family == "Debian"
+
+    - name: Install Java (Debian)
+      ansible.builtin.apt:
+        name: openjdk-21-jdk
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Install Java (RedHat)
+      ansible.builtin.yum:
+        name: java-21-amazon-corretto
+        state: present
+      when: ansible_os_family == "RedHat"
+
+    - name: Display Java version
+      command: java -version
+      register: java_version

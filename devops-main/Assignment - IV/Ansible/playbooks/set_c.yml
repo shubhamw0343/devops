@@ -1,0 +1,13 @@
+
+- name: Configure Apache on Debian family servers
+  hosts: ubuntu
+  become: yes
+  roles:
+    - apache
+
+- name: Configure httpd on RedHat family servers
+  hosts: redhat
+  become: yes
+  roles:
+    - httpd
+

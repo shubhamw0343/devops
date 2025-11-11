@@ -1,0 +1,17 @@
+---
+# tasks file for roles/httpd
+- name: Install httpd
+  yum:
+    name: httpd
+    state: present
+
+- name: Start and enable httpd
+  service:
+    name: httpd
+    state: started
+    enabled: yes
+
+- name: Create HTML page with hostname and IP
+  template:
+    src: index.html.j2
+    dest: /var/www/html/index.html

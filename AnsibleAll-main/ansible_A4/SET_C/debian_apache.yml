@@ -1,0 +1,6 @@
+- name: Setup Apache on Debian host
+  hosts: debian
+  become: yes
+
+  roles:
+    - apache

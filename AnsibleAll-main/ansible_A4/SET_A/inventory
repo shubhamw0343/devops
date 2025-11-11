@@ -1,0 +1,15 @@
+# Host definitions with per-host variables
+web01 ansible_host=13.220.116.64 ansible_user=ubuntu
+web02 ansible_host=54.242.53.158 ansible_user=ubuntu
+web03 ansible_host=54.91.4.38 ansible_user=ubuntu
+
+# Group for Debian family (Ubuntu)
+[debian]
+web01
+web02
+web03
+
+# All servers
+[allservers:children]
+debian
+

@@ -1,0 +1,9 @@
+[debian]
+debian_node ansible_host=54.172.242.27 ansible_user=ubuntu
+
+[redhat]
+redhat_node ansible_host=3.85.193.141 ansible_user=ec2-user
+
+
+
+

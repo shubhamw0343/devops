@@ -1,0 +1,41 @@
+pipeline {
+    agent {
+        label 'docker'
+    }
+
+    stages {
+        stage('Pull Docker Images') {
+            steps {
+                sh 'docker pull ubuntu:latest'
+                sh 'docker pull postgres:latest'
+            }
+        }
+
+        stage('Run Ubuntu Container') {
+            steps {
+                sh 'docker run --name my-ubuntu-container -itd ubuntu:latest'
+                sh 'docker ps -a --filter "name=my-ubuntu-container"'
+            }
+        }
+
+        stage('Run Postgres Container') {
+            steps {
+                sh 'docker run --name some-postgres -e POSTGRES_PASSWORD=admin -d postgres'
+                sh 'docker ps -a --filter "name=my-postgres-container"'
+            }
+        }
+    }
+    
+    // post {
+    //     always {
+    //         echo 'Cleaning up Docker containers...'
+    //         // Stop and remove the Ubuntu container if it exists
+    //         sh 'docker stop my-ubuntu-container || true'
+    //         sh 'docker rm my-ubuntu-container || true'
+            
+    //         // Stop and remove the Postgres container if it exists
+    //         sh 'docker stop my-postgres-container || true'
+    //         sh 'docker rm my-postgres-container || true'
+    //     }
+    // }
+}

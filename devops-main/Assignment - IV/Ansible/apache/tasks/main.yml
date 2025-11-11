@@ -1,0 +1,22 @@
+---
+- name: Install Apache on Debian
+  apt:
+    name: apache2
+    state: present
+    update_cache: yes
+  become: yes
+
+- name: Ensure Apache is running and enabled
+  service:
+    name: apache2
+    state: started
+    enabled: yes
+  become: yes
+
+- name: Deploy custom HTML page
+  template:
+    src: apache_index.html.j2
+    dest: /var/www/html/index.html
+    mode: '0644'
+  become: yes
+

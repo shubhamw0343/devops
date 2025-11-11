@@ -1,0 +1,30 @@
+---
+- name: Install Java on all servers
+  hosts: all
+  become: yes
+  tasks:
+    - name: Update package cache (Debian)
+      ansible.builtin.apt:
+        update_cache: yes
+      when: ansible_os_family == "Debian"
+
+    - name: Install Java (Debian)
+      ansible.builtin.apt:
+        name: default-jre
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Install Java (RedHat)
+      ansible.builtin.yum:
+        name: java-17-amazon-corretto
+        state: present
+      when: ansible_os_family == "RedHat"
+
+    - name: Display Java version
+      ansible.builtin.command: java -version
+      register: java_output
+      ignore_errors: yes
+
+    - name: Show Java output
+      ansible.builtin.debug:
+        var: java_output.stderr_lines

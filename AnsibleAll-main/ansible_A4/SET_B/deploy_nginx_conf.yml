@@ -1,0 +1,27 @@
+- name: Deploy Nginx configuration
+  hosts: debian
+  become: yes
+
+  tasks:
+    - name: Copy nginx configuration file
+      template:
+        src: templates/nginx.conf.j2
+        dest: /etc/nginx/sites-available/example.com.conf
+        mode: '0644'
+
+    - name: Enable the site by creating symlink
+      file:
+        src: /etc/nginx/sites-available/example.com.conf
+        dest: /etc/nginx/sites-enabled/example.com.conf
+        state: link
+
+    - name: Test Nginx configuration
+      command: nginx -t
+      register: nginx_test
+      failed_when: nginx_test.rc != 0
+      changed_when: false
+
+    - name: Reload Nginx to apply changes
+      service:
+        name: nginx
+        state: reloaded
